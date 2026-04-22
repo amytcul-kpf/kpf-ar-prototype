@@ -5,7 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>KPF AR — Image to Video</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
+  <script type="module">
+    import * as MindARImage from 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js';
+    window.MINDAR = window.MINDAR || {};
+    window.MINDAR.IMAGE = MindARImage;
+  </script>
 </head>
 <body>
 
