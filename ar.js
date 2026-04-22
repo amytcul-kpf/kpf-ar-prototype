@@ -72,12 +72,16 @@ window.addEventListener('load', async () => {
     const { renderer, scene, camera } = mindarThree;
 
     // ── Create video element ──
+    // iOS Safari rejects play() when muted=false outside a user-gesture
+    // handler. We start muted so autoplay works on target-found, and
+    // expose an unmute button in the HUD for the user to tap.
     videoEl = document.createElement('video');
     videoEl.src = videoURL;
     videoEl.loop = true;
-    videoEl.muted = false;
+    videoEl.muted = true;
     videoEl.playsInline = true;
-    videoEl.crossOrigin = 'anonymous';
+    videoEl.setAttribute('playsinline', '');
+    videoEl.setAttribute('webkit-playsinline', '');
     videoEl.preload = 'auto';
 
     // ── Create video texture ──
@@ -129,6 +133,18 @@ window.addEventListener('load', async () => {
     // ── Start AR ──
     loadingText.textContent = 'Loading AR engine...';
     await mindarThree.start();
+
+    // ── Wire up the unmute button (requires a user gesture on iOS) ──
+    const unmuteBtn = document.getElementById('unmute-btn');
+    unmuteBtn.addEventListener('click', () => {
+      if (videoEl.muted) {
+        videoEl.muted = false;
+        unmuteBtn.textContent = '🔇 Mute';
+      } else {
+        videoEl.muted = true;
+        unmuteBtn.textContent = '🔊 Unmute';
+      }
+    });
 
     // ── Render loop ──
     renderer.setAnimationLoop(() => {

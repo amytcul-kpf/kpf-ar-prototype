@@ -68,7 +68,12 @@
       color: #00c864;
     }
 
-    #back-btn {
+    .hud-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    #back-btn, #unmute-btn {
       background: rgba(255,255,255,0.1);
       border: 1px solid rgba(255,255,255,0.3);
       color: #fff;
@@ -77,9 +82,10 @@
       cursor: pointer;
       font-size: 13px;
       transition: background 0.2s;
+      font-family: inherit;
     }
 
-    #back-btn:hover {
+    #back-btn:hover, #unmute-btn:hover {
       background: rgba(255,255,255,0.2);
     }
 
@@ -214,7 +220,10 @@
   <div id="hud">
     <div class="logo">KPF</div>
     <div class="status" id="statusLabel">🔍 Scanning...</div>
-    <button id="back-btn" onclick="goBack()">← Back</button>
+    <div class="hud-actions">
+      <button id="unmute-btn">🔊 Unmute</button>
+      <button id="back-btn" onclick="goBack()">← Back</button>
+    </div>
   </div>
 
   <!-- Scan Guide Frame -->
