@@ -2,7 +2,7 @@
 let imageFile = null;
 let videoFile = null;
 let imageDataURL = null;
-let videoDataURL = null;
+let videoPreviewURL = null;
 
 // ─── Image Upload ─────────────────────────────────────────
 const imageInput = document.getElementById('imageInput');
@@ -80,21 +80,20 @@ videoDropZone.addEventListener('drop', e => {
 
 function handleVideoFile(file) {
   videoFile = file;
-  const reader = new FileReader();
-  reader.onload = e => {
-    videoDataURL = e.target.result;
-    const vid = document.getElementById('previewVideo');
-    vid.src = videoDataURL;
-    document.getElementById('videoPreview').style.display = 'block';
-    document.getElementById('videoDropZone').style.display = 'none';
-    checkReady();
-  };
-  reader.readAsDataURL(file);
+  if (videoPreviewURL) URL.revokeObjectURL(videoPreviewURL);
+  videoPreviewURL = URL.createObjectURL(file);
+  document.getElementById('previewVideo').src = videoPreviewURL;
+  document.getElementById('videoPreview').style.display = 'block';
+  document.getElementById('videoDropZone').style.display = 'none';
+  checkReady();
 }
 
 function removeVideo() {
   videoFile = null;
-  videoDataURL = null;
+  if (videoPreviewURL) {
+    URL.revokeObjectURL(videoPreviewURL);
+    videoPreviewURL = null;
+  }
   videoInput.value = '';
   document.getElementById('videoPreview').style.display = 'none';
   document.getElementById('videoDropZone').style.display = 'block';
@@ -175,8 +174,3 @@ function loadImage(src) {
     img.src = src;
   });
 }
-
-// Load MindAR compiler from CDN
-const mindARScript = document.createElement('script');
-mindARScript.src = 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js';
-document.head.appendChild(mindARScript);

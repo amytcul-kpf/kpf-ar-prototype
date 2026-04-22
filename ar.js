@@ -56,14 +56,19 @@ window.addEventListener('load', async () => {
     videoTexture.magFilter = THREE.LinearFilter;
 
     // ── Create plane to display video on ──
-    // Aspect ratio 16:9 — adjust if your video is different
-    const geometry = new THREE.PlaneGeometry(1, 0.5625);
+    // Plane is sized once the video reports its intrinsic dimensions
+    const geometry = new THREE.PlaneGeometry(1, 1);
     const material = new THREE.MeshBasicMaterial({
       map: videoTexture,
       side: THREE.DoubleSide,
       transparent: false,
     });
     const videoPlane = new THREE.Mesh(geometry, material);
+
+    videoEl.addEventListener('loadedmetadata', () => {
+      const aspect = videoEl.videoHeight / videoEl.videoWidth;
+      videoPlane.scale.set(1, aspect, 1);
+    });
 
     // ── Attach to image target anchor ──
     const anchor = mindarThree.addAnchor(0);
