@@ -145,13 +145,11 @@ async function launchAR() {
     });
 
     const buffer = await compiler.exportData();
-    const mindBlob = new Blob([buffer]);
-    const mindURL = URL.createObjectURL(mindBlob);
-    const videoURL = URL.createObjectURL(videoFile);
 
-    // Store in sessionStorage for ar-viewer to pick up
-    sessionStorage.setItem('mindURL', mindURL);
-    sessionStorage.setItem('videoURL', videoURL);
+    // Persist across navigation via IndexedDB. Blob URLs created on
+    // this page are revoked when it unloads, so sessionStorage can't
+    // carry them over — we store the raw buffer + Blob instead.
+    await saveARData(buffer, videoFile);
 
     statusText.textContent = '✅ Done! Opening AR viewer...';
 
@@ -175,6 +173,29 @@ function loadImage(src) {
     img.onerror = reject;
     img.src = src;
   });
+}
+
+function openARDatabase() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('kpf-ar', 1);
+    req.onupgradeneeded = () => req.result.createObjectStore('data');
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => reject(req.error);
+  });
+}
+
+async function saveARData(mindBuffer, videoBlob) {
+  const db = await openARDatabase();
+  try {
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction('data', 'readwrite');
+      tx.objectStore('data').put({ mindBuffer, videoBlob }, 'current');
+      tx.oncomplete = () => resolve();
+      tx.onerror    = () => reject(tx.error);
+    });
+  } finally {
+    db.close();
+  }
 }
 
 // Module scripts are scoped, so expose onclick handlers globally

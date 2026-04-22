@@ -1,19 +1,34 @@
 import * as THREE from 'three';
 import { MindARThree } from 'mindar-image-three';
 
-// ─── Retrieve compiled data from session ─────────────────
-const mindURL  = sessionStorage.getItem('mindURL');
-const videoURL = sessionStorage.getItem('videoURL');
-
-if (!mindURL || !videoURL) {
-  alert('No AR data found. Returning to setup page.');
-  window.location.href = 'index.html';
-}
-
 // ─── State ────────────────────────────────────────────────
 let mindarThree = null;
 let videoEl     = null;
 let isTracking  = false;
+
+// ─── IndexedDB — load the compiled target + video set by app.js ──
+function openARDatabase() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('kpf-ar', 1);
+    req.onupgradeneeded = () => req.result.createObjectStore('data');
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => reject(req.error);
+  });
+}
+
+async function loadARData() {
+  const db = await openARDatabase();
+  try {
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction('data', 'readonly');
+      const getReq = tx.objectStore('data').get('current');
+      getReq.onsuccess = () => resolve(getReq.result);
+      getReq.onerror   = () => reject(getReq.error);
+    });
+  } finally {
+    db.close();
+  }
+}
 
 // ─── Go Back ──────────────────────────────────────────────
 function goBack() {
@@ -32,6 +47,16 @@ window.addEventListener('load', async () => {
   const scanText       = document.getElementById('scan-text');
 
   try {
+    loadingText.textContent = 'Loading compiled target...';
+    const stored = await loadARData();
+    if (!stored) {
+      alert('No AR data found. Returning to setup page.');
+      window.location.href = 'index.html';
+      return;
+    }
+    const mindURL  = URL.createObjectURL(new Blob([stored.mindBuffer]));
+    const videoURL = URL.createObjectURL(stored.videoBlob);
+
     loadingText.textContent = 'Starting camera...';
 
     // ── Init MindAR Three.js renderer ──
