@@ -3,8 +3,8 @@ import { Compiler } from 'mindar-image';
 // ─── State ───────────────────────────────────────────────
 let imageFile = null;
 let videoFile = null;
-let imageDataURL = null;
-let videoPreviewURL = null;
+let imageObjectURL   = null;
+let videoPreviewURL  = null;
 
 // ─── Image Upload ─────────────────────────────────────────
 const imageInput = document.getElementById('imageInput');
@@ -34,20 +34,20 @@ imageDropZone.addEventListener('drop', e => {
 
 function handleImageFile(file) {
   imageFile = file;
-  const reader = new FileReader();
-  reader.onload = e => {
-    imageDataURL = e.target.result;
-    document.getElementById('previewImg').src = imageDataURL;
-    document.getElementById('imagePreview').style.display = 'block';
-    document.getElementById('imageDropZone').style.display = 'none';
-    checkReady();
-  };
-  reader.readAsDataURL(file);
+  if (imageObjectURL) URL.revokeObjectURL(imageObjectURL);
+  imageObjectURL = URL.createObjectURL(file);
+  document.getElementById('previewImg').src = imageObjectURL;
+  document.getElementById('imagePreview').style.display = 'block';
+  document.getElementById('imageDropZone').style.display = 'none';
+  checkReady();
 }
 
 function removeImage() {
   imageFile = null;
-  imageDataURL = null;
+  if (imageObjectURL) {
+    URL.revokeObjectURL(imageObjectURL);
+    imageObjectURL = null;
+  }
   imageInput.value = '';
   document.getElementById('imagePreview').style.display = 'none';
   document.getElementById('imageDropZone').style.display = 'block';
@@ -139,7 +139,7 @@ async function launchAR() {
   try {
     // Compile the image into a MindAR .mind file in the browser
     const compiler = new Compiler();
-    const img = await loadImage(imageDataURL);
+    const img = await loadImage(imageObjectURL);
     await compiler.compileImageTargets([img], progress => {
       statusText.textContent = `Compiling image target... ${Math.round(progress)}%`;
     });
