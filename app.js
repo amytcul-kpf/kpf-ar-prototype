@@ -1,3 +1,5 @@
+import { Compiler } from 'mindar-image';
+
 // ─── State ───────────────────────────────────────────────
 let imageFile = null;
 let videoFile = null;
@@ -136,7 +138,7 @@ async function launchAR() {
 
   try {
     // Compile the image into a MindAR .mind file in the browser
-    const compiler = new MINDAR.IMAGE.Compiler();
+    const compiler = new Compiler();
     const img = await loadImage(imageDataURL);
     await compiler.compileImageTargets([img], progress => {
       statusText.textContent = `Compiling image target... ${Math.round(progress)}%`;
@@ -174,3 +176,8 @@ function loadImage(src) {
     img.src = src;
   });
 }
+
+// Module scripts are scoped, so expose onclick handlers globally
+window.removeImage = removeImage;
+window.removeVideo = removeVideo;
+window.launchAR   = launchAR;

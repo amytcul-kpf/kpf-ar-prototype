@@ -1,3 +1,6 @@
+import * as THREE from 'three';
+import { MindARThree } from 'mindar-image-three';
+
 // ─── Retrieve compiled data from session ─────────────────
 const mindURL  = sessionStorage.getItem('mindURL');
 const videoURL = sessionStorage.getItem('videoURL');
@@ -17,6 +20,8 @@ function goBack() {
   if (mindarThree) mindarThree.stop();
   window.location.href = 'index.html';
 }
+// Module scope — expose for the onclick attribute in ar-viewer.html
+window.goBack = goBack;
 
 // ─── Boot AR ──────────────────────────────────────────────
 window.addEventListener('load', async () => {
@@ -30,7 +35,7 @@ window.addEventListener('load', async () => {
     loadingText.textContent = 'Starting camera...';
 
     // ── Init MindAR Three.js renderer ──
-    mindarThree = new window.MINDAR.IMAGE.MindARThree({
+    mindarThree = new MindARThree({
       container: document.getElementById('ar-container'),
       imageTargetSrc: mindURL,
       maxTrack: 1,
