@@ -71,7 +71,7 @@ window.addEventListener('load', async () => {
       uiLoading: 'no',
       uiScanning: 'no',
       uiError: 'no',
-      filterMinCF: 0.000095,
+      filterMinCF: 0.000099,
       filterBeta: 0.001,
     });
 
