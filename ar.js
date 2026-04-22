@@ -60,13 +60,10 @@ window.addEventListener('load', async () => {
     loadingText.textContent = 'Starting camera...';
 
     // ── Init MindAR Three.js renderer ──
-    // filterMinCF / filterBeta tune MindAR's One Euro Filter on the
-    // tracked pose. Lowering filterMinCF (default 0.0001) damps
-    // jitter when the target is stationary; keeping filterBeta at
-    // the default (0.001) preserves responsiveness during motion.
-    // warmupTolerance / missTolerance add a short debounce on
-    // found/lost transitions so brief tracking glitches don't pop
-    // the overlay in/out.
+    // Slight bump in smoothing vs. MindAR's defaults to take the edge
+    // off per-frame jitter without adding noticeable pose lag.
+    //   filterMinCF default: 0.0001   → we use 0.00008 (mild smoothing)
+    //   filterBeta  default: 0.001    → unchanged (keeps motion crisp)
     mindarThree = new MindARThree({
       container: document.getElementById('ar-container'),
       imageTargetSrc: mindURL,
@@ -74,10 +71,8 @@ window.addEventListener('load', async () => {
       uiLoading: 'no',
       uiScanning: 'no',
       uiError: 'no',
-      filterMinCF: 0.00005,
+      filterMinCF: 0.00008,
       filterBeta: 0.001,
-      warmupTolerance: 5,
-      missTolerance: 5,
     });
 
     const { renderer, scene, camera } = mindarThree;
