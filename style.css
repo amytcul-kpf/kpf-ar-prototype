@@ -225,8 +225,240 @@ header h1 {
   to { transform: rotate(360deg); }
 }
 
+/* ─── Home: New Project card & Project list ─── */
+.card-action {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+}
+
+.action-icon {
+  font-size: 40px;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--kpf-black);
+  flex-shrink: 0;
+}
+
+.action-text h2 {
+  margin-bottom: 4px;
+}
+
+.action-text p {
+  font-size: 14px;
+  color: var(--kpf-mid);
+  margin: 0;
+}
+
+.project-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.project-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.project-info h2 {
+  font-size: 18px;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-info p {
+  font-size: 13px;
+  color: var(--kpf-mid);
+  margin: 0;
+}
+
+.project-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--kpf-mid);
+  font-size: 14px;
+  padding: 12px;
+}
+
+/* ─── Project editor ─── */
+.text-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--kpf-border);
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  background: var(--kpf-white);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.text-input:focus {
+  border-color: var(--kpf-black);
+}
+
+.pair-card {
+  background: var(--kpf-grey);
+  border: 1px solid var(--kpf-border);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.pair-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.pair-number {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--kpf-mid);
+  text-transform: uppercase;
+}
+
+.pair-remove {
+  padding: 4px 10px;
+  font-size: 11px;
+  background: rgba(0,0,0,0.08);
+  color: var(--kpf-black);
+}
+
+.pair-remove:hover { background: rgba(0,0,0,0.15); }
+
+.pair-slots {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.pair-slot {
+  background: var(--kpf-white);
+  border: 2px dashed var(--kpf-border);
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-height: 130px;
+  justify-content: center;
+  text-align: center;
+}
+
+.pair-slot:hover {
+  border-color: var(--kpf-black);
+}
+
+.slot-label {
+  font-size: 12px;
+  color: var(--kpf-mid);
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.slot-empty {
+  font-size: 13px;
+  color: var(--kpf-mid);
+}
+
+.slot-preview {
+  width: 100%;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.slot-filename {
+  font-size: 11px;
+  color: var(--kpf-mid);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Buttons ─── */
+.btn-secondary {
+  display: inline-block;
+  padding: 10px 16px;
+  background: var(--kpf-white);
+  color: var(--kpf-black);
+  border: 1px solid var(--kpf-border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s ease;
+  font-family: inherit;
+}
+
+.btn-secondary:hover {
+  background: var(--kpf-grey);
+}
+
+.btn-back {
+  display: inline-block;
+  padding: 14px 18px;
+  background: transparent;
+  color: var(--kpf-mid);
+  border: 1px solid var(--kpf-border);
+  border-radius: var(--radius);
+  font-size: 15px;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: inherit;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-back:hover {
+  color: var(--kpf-black);
+  border-color: var(--kpf-black);
+}
+
+.btn-small {
+  padding: 8px 14px;
+  font-size: 13px;
+}
+
+.action-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.action-row .btn-launch { flex: 1; margin-top: 0; }
+
 /* ─── Responsive ─── */
 @media (max-width: 480px) {
   .card { padding: 24px 20px; }
   header h1 { font-size: 22px; }
+  .project-card { flex-wrap: wrap; }
+  .project-actions { width: 100%; justify-content: flex-end; }
+  .pair-slots { grid-template-columns: 1fr; }
 }
+

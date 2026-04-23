@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KPF AR — Project</title>
+  <link rel="stylesheet" href="style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/",
+        "mindar-image": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <div class="container">
+
+    <header>
+      <div class="logo">KPF</div>
+      <h1 id="pageTitle">New Project</h1>
+      <p class="subtitle">Add image + video pairs. Each printed image triggers its paired video in AR.</p>
+    </header>
+
+    <div class="card">
+      <div class="step-number">01</div>
+      <h2>Project Name</h2>
+      <input type="text" id="projectName" placeholder="e.g. KPF Tower Launch" class="text-input" maxlength="60" />
+    </div>
+
+    <div class="card">
+      <div class="step-number">02</div>
+      <h2>Image / Video Pairs</h2>
+      <p>Each pair: the printed reference image, plus the video that will play on top of it.</p>
+      <div id="pairList"></div>
+      <button class="btn-secondary" id="addPairBtn">+ Add another pair</button>
+    </div>
+
+    <div class="card">
+      <div class="step-number">03</div>
+      <h2>Compile & Save</h2>
+      <p>We'll compile all your images into a single AR target file. Runs in your browser — expect ~10–20 seconds per image.</p>
+
+      <div id="statusBox" class="status-box hidden">
+        <div class="spinner"></div>
+        <span id="statusText">Saving…</span>
+      </div>
+
+      <div class="action-row">
+        <a class="btn-back" href="index.html">← Back</a>
+        <button class="btn-launch" id="saveBtn">💾 Save Project</button>
+        <a class="btn-launch" id="launchBtn" style="display:none">🚀 Launch AR</a>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="project.js"></script>
+</body>
+</html>

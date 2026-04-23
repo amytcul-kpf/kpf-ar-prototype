@@ -3,82 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>KPF AR — Image to Video</title>
+  <title>KPF AR — Projects</title>
   <link rel="stylesheet" href="style.css" />
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/",
-        "mindar-image": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"
-      }
-    }
-  </script>
 </head>
 <body>
 
   <div class="container">
 
-    <!-- HEADER -->
     <header>
       <div class="logo">KPF</div>
-      <h1>AR Image Viewer</h1>
-      <p class="subtitle">Upload a reference image and a video to create an AR experience</p>
+      <h1>AR Projects</h1>
+      <p class="subtitle">Create a new project or open an existing one</p>
     </header>
 
-    <!-- STEP 1 — Upload Image -->
-    <div class="card" id="step1">
-      <div class="step-number">01</div>
-      <h2>Reference Image</h2>
-      <p>Upload a scan or photo of your printed A3 image</p>
-      <div class="upload-zone" id="imageDropZone">
-        <input type="file" id="imageInput" accept="image/*" hidden />
-        <div class="upload-icon">🖼️</div>
-        <p>Drag & drop or <span class="link">browse</span></p>
-        <p class="hint">JPG, PNG — high contrast images work best</p>
+    <a href="project.html" class="card card-action">
+      <div class="action-icon">＋</div>
+      <div class="action-text">
+        <h2>New Project</h2>
+        <p>Start a new AR experience with images + videos</p>
       </div>
-      <div class="preview-wrap" id="imagePreview" style="display:none">
-        <img id="previewImg" src="" alt="Reference" />
-        <button class="btn-remove" onclick="removeImage()">✕ Remove</button>
-      </div>
-    </div>
+    </a>
 
-    <!-- STEP 2 — Upload Video -->
-    <div class="card" id="step2">
-      <div class="step-number">02</div>
-      <h2>Overlay Video</h2>
-      <p>Upload the video that will play on top of your image</p>
-      <div class="upload-zone" id="videoDropZone">
-        <input type="file" id="videoInput" accept="video/*" hidden />
-        <div class="upload-icon">🎬</div>
-        <p>Drag & drop or <span class="link">browse</span></p>
-        <p class="hint">MP4 recommended — keep under 50MB for best performance</p>
-      </div>
-      <div class="preview-wrap" id="videoPreview" style="display:none">
-        <video id="previewVideo" controls></video>
-        <button class="btn-remove" onclick="removeVideo()">✕ Remove</button>
-      </div>
-    </div>
+    <div id="projectList"></div>
 
-    <!-- STEP 3 — Launch -->
-    <div class="card" id="step3">
-      <div class="step-number">03</div>
-      <h2>Launch AR Experience</h2>
-      <p>Point your webcam at the printed A3 image to trigger the video overlay</p>
-
-      <div id="statusBox" class="status-box hidden">
-        <div class="spinner"></div>
-        <span id="statusText">Compiling image target...</span>
-      </div>
-
-      <button class="btn-launch" id="launchBtn" disabled onclick="launchAR()">
-        🚀 Compile & Launch AR
-      </button>
-      <p class="hint" id="launchHint">Upload both an image and a video to continue</p>
-    </div>
+    <p id="emptyState" class="empty-state" style="display:none">
+      No projects yet — tap <strong>＋ New Project</strong> above to get started.
+    </p>
 
   </div>
 
-  <script type="module" src="app.js"></script>
+  <script type="module" src="home.js"></script>
 </body>
 </html>
