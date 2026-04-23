@@ -453,6 +453,46 @@ header h1 {
 
 .action-row .btn-launch { flex: 1; margin-top: 0; }
 
+/* ─── Media type toggle (project editor) ─── */
+.media-type-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--kpf-white);
+  border: 1px solid var(--kpf-border);
+  border-radius: 8px;
+  padding: 4px;
+  margin: 8px 0 6px;
+}
+
+.media-btn {
+  flex: 1;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--kpf-mid);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.media-btn:hover { color: var(--kpf-black); }
+
+.media-btn.selected {
+  background: var(--kpf-black);
+  color: var(--kpf-white);
+}
+
+.media-hint {
+  font-size: 11px !important;
+  color: var(--kpf-mid);
+  margin: 0 0 10px !important;
+  letter-spacing: 0.3px;
+}
+
 /* ─── Responsive ─── */
 @media (max-width: 480px) {
   .card { padding: 24px 20px; }
@@ -460,5 +500,6 @@ header h1 {
   .project-card { flex-wrap: wrap; }
   .project-actions { width: 100%; justify-content: flex-end; }
   .pair-slots { grid-template-columns: 1fr; }
+  .media-btn { font-size: 11px; padding: 6px 4px; }
 }
 

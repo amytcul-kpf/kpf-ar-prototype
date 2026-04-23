@@ -82,6 +82,22 @@ export async function listProjects() {
   }
 }
 
+// Normalise legacy targets (pre-media-type schema) to the current
+// shape: { imageBlob, mediaType, mediaBlob, ... }. Old records only
+// had { videoName, videoBlob } — treat them as flat video.
+function normaliseTarget(t) {
+  if (t.mediaType) return t;
+  if (t.videoBlob) {
+    return {
+      ...t,
+      mediaType: 'video',
+      mediaName: t.videoName,
+      mediaBlob: t.videoBlob,
+    };
+  }
+  return { ...t, mediaType: 'video' };
+}
+
 export async function getProject(id) {
   const db = await openDB();
   try {
@@ -95,7 +111,7 @@ export async function getProject(id) {
         const data = dataReq.result || {};
         resolve({
           ...meta,
-          targets:    data.targets || [],
+          targets:    (data.targets || []).map(normaliseTarget),
           mindBuffer: data.mindBuffer,
         });
       };

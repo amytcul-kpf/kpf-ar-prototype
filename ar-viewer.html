@@ -203,9 +203,126 @@
       60% { width: 80%; }
       100% { width: 100%; }
     }
+
+    /* ─── Tap-to-start overlay (iOS motion permission) ─── */
+    #tap-to-start.tap-overlay {
+      position: fixed;
+      inset: 0;
+      background: #0a0a0a;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    #tap-to-start .logo {
+      font-size: 32px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 6px;
+    }
+
+    #tap-to-start h2 {
+      color: #fff;
+      font-weight: 600;
+      font-size: 22px;
+    }
+
+    #tap-to-start p {
+      color: rgba(255,255,255,0.6);
+      font-size: 14px;
+      max-width: 280px;
+      line-height: 1.5;
+    }
+
+    #tap-to-start .btn-launch {
+      background: #fff;
+      color: #0a0a0a;
+      border: none;
+      padding: 16px 28px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    /* ─── 360 panorama overlay ─── */
+    .pano-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .pano-canvas {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      touch-action: none;
+      cursor: grab;
+    }
+
+    .pano-canvas:active { cursor: grabbing; }
+
+    .pano-hud {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 16px 24px;
+      z-index: 1001;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+    }
+
+    .pano-btn {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: inherit;
+      transition: background 0.15s ease;
+    }
+
+    .pano-btn:hover { background: rgba(255,255,255,0.22); }
+
+    .pano-hint {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.85);
+      background: rgba(0,0,0,0.5);
+      padding: 10px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      z-index: 1001;
+      pointer-events: none;
+      transition: opacity 0.8s ease;
+    }
+
+    .pano-hint.fade { opacity: 0; }
   </style>
 </head>
 <body>
+
+  <!-- Tap-to-start overlay (iOS 13+ needs a user gesture for motion permission) -->
+  <div id="tap-to-start" class="tap-overlay" style="display:none">
+    <div class="logo">KPF</div>
+    <h2>Ready to start?</h2>
+    <p>We'll ask permission for camera and motion access.</p>
+    <button id="tap-start-btn" class="btn-launch">🚀 Tap to Start AR</button>
+  </div>
 
   <!-- Loading Screen -->
   <div id="loading-overlay">
