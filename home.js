@@ -32,7 +32,10 @@ function renderProject(p) {
     e.preventDefault();
     if (!confirm(`Delete "${p.name}"? This can't be undone.`)) return;
     await deleteProject(p.id);
-    render();
+    el.remove();
+    if (projectList.children.length === 0) {
+      emptyState.style.display = 'block';
+    }
   });
   return el;
 }
