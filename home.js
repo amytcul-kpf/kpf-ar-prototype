@@ -20,7 +20,7 @@ function renderProject(p) {
   el.innerHTML = `
     <div class="project-info">
       <h2>${escapeHtml(p.name || 'Untitled')}</h2>
-      <p>${p.targets.length} target${p.targets.length === 1 ? '' : 's'} · ${formatDate(p.createdAt)}</p>
+      <p>${p.targetCount} target${p.targetCount === 1 ? '' : 's'} · ${formatDate(p.createdAt)}</p>
     </div>
     <div class="project-actions">
       <a class="btn-secondary" href="project.html?id=${encodeURIComponent(p.id)}">Open</a>
