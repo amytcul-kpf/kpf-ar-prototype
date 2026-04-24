@@ -123,7 +123,7 @@ export function showPanorama({ blob, type, motionGranted, onExit }) {
     texture.magFilter = THREE.LinearFilter;
   }
 
-  const material = new THREE.MeshBasicMaterial({ map: texture });
+  const material = new THREE.MeshBasicMaterial({ map: texture, toneMapped: false });
   const mesh = new THREE.Mesh(geometry, material);
   scene.add(mesh);
 

@@ -315,6 +315,35 @@
     }
 
     .pano-hint.fade { opacity: 0; }
+
+    /* ─── Model scale slider (only shown when a 3D model target exists) ─── */
+    .model-scale-ctrl {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.55);
+      padding: 10px 18px;
+      border-radius: 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      z-index: 997;
+      font-family: inherit;
+    }
+
+    .model-scale-ctrl label {
+      color: rgba(255,255,255,0.9);
+      font-size: 12px;
+      letter-spacing: 1px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .model-scale-ctrl input[type=range] {
+      width: 220px;
+      accent-color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -354,6 +383,12 @@
   </div>
 
   <p id="scan-text">Point camera at one of your printed images</p>
+
+  <!-- Scale slider (shown in ar.js only for projects with a 3D model target) -->
+  <div id="model-scale-control" class="model-scale-ctrl" style="display:none">
+    <label for="model-scale">Scale 1:<span id="model-scale-value">50</span></label>
+    <input type="range" id="model-scale" min="1" max="500" step="1" value="50" />
+  </div>
 
   <!-- AR Container -->
   <div id="ar-container"></div>

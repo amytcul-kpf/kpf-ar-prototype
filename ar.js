@@ -54,13 +54,16 @@ async function waitForStart() {
 
 // ─── Boot AR ──────────────────────────────────────────────
 window.addEventListener('load', async () => {
-  const loadingOverlay = document.getElementById('loading-overlay');
-  const loadingText    = document.getElementById('loading-text');
-  const loadingBar     = document.getElementById('loading-bar');
-  const loadingPct     = document.getElementById('loading-percent');
-  const statusLabel    = document.getElementById('statusLabel');
-  const scanGuide      = document.getElementById('scan-guide');
-  const scanText       = document.getElementById('scan-text');
+  const loadingOverlay    = document.getElementById('loading-overlay');
+  const loadingText       = document.getElementById('loading-text');
+  const loadingBar        = document.getElementById('loading-bar');
+  const loadingPct        = document.getElementById('loading-percent');
+  const statusLabel       = document.getElementById('statusLabel');
+  const scanGuide         = document.getElementById('scan-guide');
+  const scanText          = document.getElementById('scan-text');
+  const modelScaleCtrl    = document.getElementById('model-scale-control');
+  const modelScaleSlider  = document.getElementById('model-scale');
+  const modelScaleValue   = document.getElementById('model-scale-value');
 
   // Progress helper — clamps and updates bar width + % readout + label.
   let progress = 0;
@@ -111,8 +114,20 @@ window.addEventListener('load', async () => {
 
     const { renderer, scene, camera } = mindarThree;
 
-    // ── Lights (only needed if any target is a 3D model) ──
-    if (project.targets.some(t => t.mediaType === 'model3d')) {
+    // ── Lights + renderer colour pipeline (only for 3D model targets) ──
+    const hasModel = project.targets.some(t => t.mediaType === 'model3d');
+    if (hasModel) {
+      // MindAR sets the deprecated renderer.outputEncoding under the
+      // hood; glTF textures end up rendered in linear space and look
+      // washed-out / grey. Force the modern sRGB pipeline + PBR-
+      // friendly tone mapping so materials render the way Rhino
+      // exported them. Video/panorama materials are marked
+      // toneMapped=false individually below so this change doesn't
+      // shift their colours.
+      renderer.outputColorSpace     = THREE.SRGBColorSpace;
+      renderer.toneMapping          = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure  = 1.0;
+
       scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.6));
       const dir = new THREE.DirectionalLight(0xffffff, 1.8);
       dir.position.set(1, 2, 1);
@@ -128,6 +143,29 @@ window.addEventListener('load', async () => {
       draco.setDecoderPath(DRACO_DECODER);
       gltfLoader.setDRACOLoader(draco);
       return gltfLoader;
+    }
+
+    // ── Model scale control ──
+    // Assume the printed image is A3 landscape: 42 cm wide. The anchor
+    // has unit width (1 unit = image width), so 1 unit in anchor space
+    // maps to 0.42 m in the real world. For a 1:N display scale, a
+    // 1-metre piece of model geometry should occupy 1/(N·0.42) units.
+    const ASSUMED_IMAGE_WIDTH_M = 0.42;
+    const loadedModels = []; // three.js Groups, used for live rescale
+
+    function scaleForRatio(N) {
+      return 1 / (N * ASSUMED_IMAGE_WIDTH_M);
+    }
+
+    function repositionModel(model) {
+      // Caller must have applied rotation + scale first.
+      model.position.set(0, 0, 0);
+      const box = new THREE.Box3().setFromObject(model);
+      const center = new THREE.Vector3();
+      box.getCenter(center);
+      model.position.x -= center.x;
+      model.position.y -= center.y;
+      model.position.z -= box.min.z;
     }
 
     // ── Build one anchor per project target ──
@@ -164,32 +202,18 @@ window.addEventListener('load', async () => {
           (gltf) => {
             const model = gltf.scene;
 
-            // glTF files are Y-up (spec-mandated), but MindAR's image
-            // anchor places X/Y in the image plane with +Z sticking out
-            // of the printed image. Rotate +90° around X so the model's
-            // Y-up becomes the anchor's Z-up — i.e. standing on the
-            // image instead of lying on its side (or upside down).
+            // glTF is Y-up; MindAR's image anchor has +Z out of the
+            // image plane. Rotate +90° around X so model-Y becomes
+            // anchor-Z and the model stands on the printed image.
             model.rotation.x = Math.PI / 2;
 
-            // Auto-fit: scale the model so its largest dimension
-            // matches the image anchor's width (= 1 unit).
-            const box  = new THREE.Box3().setFromObject(model);
-            const size = new THREE.Vector3();
-            box.getSize(size);
-            const maxDim = Math.max(size.x, size.y, size.z);
-            if (maxDim > 0) model.scale.setScalar(1 / maxDim);
-
-            // Re-measure after scale/rotation. X and Y are along the
-            // image plane — centre the model on those; Z is out of
-            // the image plane — lift so the bbox bottom sits on Z=0.
-            box.setFromObject(model);
-            const center = new THREE.Vector3();
-            box.getCenter(center);
-            model.position.x -= center.x;
-            model.position.y -= center.y;
-            model.position.z -= box.min.z;
+            // Apply the current slider ratio (default starts at 1:50).
+            const N = parseInt(modelScaleSlider?.value || '50', 10);
+            model.scale.setScalar(scaleForRatio(N));
+            repositionModel(model);
 
             anchor.group.add(model);
+            loadedModels.push(model);
             URL.revokeObjectURL(modelBlobURL);
           },
           undefined,
@@ -231,6 +255,7 @@ window.addEventListener('load', async () => {
         map: videoTexture,
         side: THREE.DoubleSide,
         transparent: false,
+        toneMapped: false, // keep video colours untouched by ACES tone mapping
       });
       const videoPlane = new THREE.Mesh(geometry, material);
 
@@ -283,6 +308,20 @@ window.addEventListener('load', async () => {
       clearInterval(trickleId);
     }
     setProgress(92, 'Finalising…');
+
+    // ── Model scale slider (show only if at least one target is 3D) ──
+    if (hasModel) {
+      modelScaleCtrl.style.display = '';
+      modelScaleSlider.addEventListener('input', () => {
+        const N = parseInt(modelScaleSlider.value, 10);
+        modelScaleValue.textContent = N;
+        const s = scaleForRatio(N);
+        for (const m of loadedModels) {
+          m.scale.setScalar(s);
+          repositionModel(m);
+        }
+      });
+    }
 
     // ── HUD unmute button (flat-video only) ──
     const unmuteBtn = document.getElementById('unmute-btn');
