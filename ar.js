@@ -164,27 +164,30 @@ window.addEventListener('load', async () => {
           (gltf) => {
             const model = gltf.scene;
 
-            // Rhino exports Z-up; three.js is Y-up. Un-rotate so
-            // the model stands the right way on the tracked image.
-            model.rotation.x = -Math.PI / 2;
+            // glTF files are Y-up (spec-mandated), but MindAR's image
+            // anchor places X/Y in the image plane with +Z sticking out
+            // of the printed image. Rotate +90° around X so the model's
+            // Y-up becomes the anchor's Z-up — i.e. standing on the
+            // image instead of lying on its side (or upside down).
+            model.rotation.x = Math.PI / 2;
 
-            // Auto-fit: scale the model so its largest horizontal
-            // dimension matches the image anchor's width (= 1 unit).
+            // Auto-fit: scale the model so its largest dimension
+            // matches the image anchor's width (= 1 unit).
             const box  = new THREE.Box3().setFromObject(model);
             const size = new THREE.Vector3();
             box.getSize(size);
             const maxDim = Math.max(size.x, size.y, size.z);
             if (maxDim > 0) model.scale.setScalar(1 / maxDim);
 
-            // Re-measure after scale/rotation; centre on the anchor
-            // horizontally, and lift so the bottom of the bounding
-            // box sits on the printed image plane.
+            // Re-measure after scale/rotation. X and Y are along the
+            // image plane — centre the model on those; Z is out of
+            // the image plane — lift so the bbox bottom sits on Z=0.
             box.setFromObject(model);
             const center = new THREE.Vector3();
             box.getCenter(center);
             model.position.x -= center.x;
-            model.position.z -= center.z;
-            model.position.y -= box.min.y;
+            model.position.y -= center.y;
+            model.position.z -= box.min.z;
 
             anchor.group.add(model);
             URL.revokeObjectURL(modelBlobURL);
