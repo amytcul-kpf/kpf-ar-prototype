@@ -28,14 +28,18 @@ function renderProject(p) {
       <button class="btn-remove" data-del="${encodeURIComponent(p.id)}">✕</button>
     </div>
   `;
-  el.querySelector('[data-del]').addEventListener('click', async (e) => {
+  el.querySelector('[data-del]').addEventListener('click', (e) => {
     e.preventDefault();
     if (!confirm(`Delete "${p.name}"? This can't be undone.`)) return;
-    await deleteProject(p.id);
+    // Optimistic: detach the card now so the click handler returns
+    // immediately. IndexedDB deletion of a project with large video
+    // blobs can take several seconds while the browser frees the
+    // backing storage — we don't block the UI on it.
     el.remove();
     if (projectList.children.length === 0) {
       emptyState.style.display = 'block';
     }
+    deleteProject(p.id).catch(err => console.error('Delete failed:', err));
   });
   return el;
 }
