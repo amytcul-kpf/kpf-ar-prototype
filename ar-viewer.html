@@ -316,33 +316,40 @@
 
     .pano-hint.fade { opacity: 0; }
 
-    /* ─── Model scale slider (only shown when a 3D model target exists) ─── */
+    /* ─── Model scale toggle (only shown when a 3D model target exists) ─── */
     .model-scale-ctrl {
       position: fixed;
       bottom: 28px;
       left: 50%;
       transform: translateX(-50%);
       background: rgba(0,0,0,0.55);
-      padding: 10px 18px;
+      padding: 4px;
       border-radius: 22px;
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
+      gap: 2px;
       z-index: 997;
       font-family: inherit;
     }
 
-    .model-scale-ctrl label {
-      color: rgba(255,255,255,0.9);
-      font-size: 12px;
+    .model-scale-btn {
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,0.85);
+      padding: 8px 20px;
+      border-radius: 18px;
+      font-size: 13px;
+      font-weight: 600;
       letter-spacing: 1px;
-      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s ease, color 0.15s ease;
     }
 
-    .model-scale-ctrl input[type=range] {
-      width: 220px;
-      accent-color: #fff;
+    .model-scale-btn:hover { color: #fff; }
+
+    .model-scale-btn.selected {
+      background: #fff;
+      color: #0a0a0a;
     }
   </style>
 </head>
@@ -384,10 +391,10 @@
 
   <p id="scan-text">Point camera at one of your printed images</p>
 
-  <!-- Scale slider (shown in ar.js only for projects with a 3D model target) -->
+  <!-- Scale toggle (shown in ar.js only for projects with a 3D model target) -->
   <div id="model-scale-control" class="model-scale-ctrl" style="display:none">
-    <label for="model-scale">Scale 1:<span id="model-scale-value">50</span></label>
-    <input type="range" id="model-scale" min="1" max="500" step="1" value="50" />
+    <button class="model-scale-btn selected" data-mode="fit">FIT</button>
+    <button class="model-scale-btn" data-mode="real">1:1</button>
   </div>
 
   <!-- AR Container -->

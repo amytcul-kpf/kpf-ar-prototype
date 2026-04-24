@@ -62,8 +62,6 @@ window.addEventListener('load', async () => {
   const scanGuide         = document.getElementById('scan-guide');
   const scanText          = document.getElementById('scan-text');
   const modelScaleCtrl    = document.getElementById('model-scale-control');
-  const modelScaleSlider  = document.getElementById('model-scale');
-  const modelScaleValue   = document.getElementById('model-scale-value');
 
   // Progress helper — clamps and updates bar width + % readout + label.
   let progress = 0;
@@ -146,15 +144,20 @@ window.addEventListener('load', async () => {
     }
 
     // ── Model scale control ──
-    // Assume the printed image is A3 landscape: 42 cm wide. The anchor
-    // has unit width (1 unit = image width), so 1 unit in anchor space
-    // maps to 0.42 m in the real world. For a 1:N display scale, a
-    // 1-metre piece of model geometry should occupy 1/(N·0.42) units.
+    // The anchor has unit width (1 unit = printed image width). We
+    // assume the image is A3 landscape (42 cm) so we can map "1:1"
+    // to real-world metres: 1 real metre = 1 / 0.42 ≈ 2.38 anchor
+    // units.  FIT scale ignores that conversion and instead shrinks
+    // the model so its largest dimension equals the image width.
     const ASSUMED_IMAGE_WIDTH_M = 0.42;
-    const loadedModels = []; // three.js Groups, used for live rescale
+    // Each entry: { model, nativeMaxDim } where nativeMaxDim is the
+    // model's largest dimension in native units (metres, pre-scale).
+    const loadedModels = [];
+    let currentScaleMode = 'fit'; // 'fit' | 'real'
 
-    function scaleForRatio(N) {
-      return 1 / (N * ASSUMED_IMAGE_WIDTH_M);
+    function scaleForMode(mode, nativeMaxDim) {
+      if (mode === 'real') return 1 / ASSUMED_IMAGE_WIDTH_M;
+      return nativeMaxDim > 0 ? 1 / nativeMaxDim : 1;
     }
 
     function repositionModel(model) {
@@ -166,6 +169,13 @@ window.addEventListener('load', async () => {
       model.position.x -= center.x;
       model.position.y -= center.y;
       model.position.z -= box.min.z;
+    }
+
+    function applyScaleToAll() {
+      for (const entry of loadedModels) {
+        entry.model.scale.setScalar(scaleForMode(currentScaleMode, entry.nativeMaxDim));
+        repositionModel(entry.model);
+      }
     }
 
     // ── Build one anchor per project target ──
@@ -207,13 +217,19 @@ window.addEventListener('load', async () => {
             // anchor-Z and the model stands on the printed image.
             model.rotation.x = Math.PI / 2;
 
-            // Apply the current slider ratio (default starts at 1:50).
-            const N = parseInt(modelScaleSlider?.value || '50', 10);
-            model.scale.setScalar(scaleForRatio(N));
+            // Measure the native (pre-scale) size so FIT and 1:1 can
+            // both be computed from the same baseline at any time.
+            const rawBox  = new THREE.Box3().setFromObject(model);
+            const rawSize = new THREE.Vector3();
+            rawBox.getSize(rawSize);
+            const nativeMaxDim = Math.max(rawSize.x, rawSize.y, rawSize.z);
+
+            // Default display mode is FIT.
+            model.scale.setScalar(scaleForMode(currentScaleMode, nativeMaxDim));
             repositionModel(model);
 
             anchor.group.add(model);
-            loadedModels.push(model);
+            loadedModels.push({ model, nativeMaxDim });
             URL.revokeObjectURL(modelBlobURL);
           },
           undefined,
@@ -309,17 +325,17 @@ window.addEventListener('load', async () => {
     }
     setProgress(92, 'Finalising…');
 
-    // ── Model scale slider (show only if at least one target is 3D) ──
+    // ── Model scale toggle (show only if at least one target is 3D) ──
     if (hasModel) {
       modelScaleCtrl.style.display = '';
-      modelScaleSlider.addEventListener('input', () => {
-        const N = parseInt(modelScaleSlider.value, 10);
-        modelScaleValue.textContent = N;
-        const s = scaleForRatio(N);
-        for (const m of loadedModels) {
-          m.scale.setScalar(s);
-          repositionModel(m);
-        }
+      modelScaleCtrl.querySelectorAll('.model-scale-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentScaleMode = btn.dataset.mode; // 'fit' | 'real'
+          modelScaleCtrl.querySelectorAll('.model-scale-btn').forEach(b => {
+            b.classList.toggle('selected', b === btn);
+          });
+          applyScaleToAll();
+        });
       });
     }
 
