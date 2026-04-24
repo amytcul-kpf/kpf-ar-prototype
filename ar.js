@@ -212,6 +212,18 @@ window.addEventListener('load', async () => {
           (gltf) => {
             const model = gltf.scene;
 
+            // Render both face sides. At 1:1 scale the phone camera
+            // ends up inside the model (you're standing "in" the
+            // building), so front-face-only culling would hide every
+            // wall from that viewpoint. DoubleSide also helps thin
+            // geometry like single-sided walls look correct either
+            // way round. Negligible cost for typical AR model sizes.
+            model.traverse((obj) => {
+              if (!obj.isMesh || !obj.material) return;
+              const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+              for (const m of mats) m.side = THREE.DoubleSide;
+            });
+
             // glTF is Y-up; MindAR's image anchor has +Z out of the
             // image plane. Rotate +90° around X so model-Y becomes
             // anchor-Z and the model stands on the printed image.
