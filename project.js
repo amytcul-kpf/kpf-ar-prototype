@@ -4,9 +4,10 @@ import { getProject, saveProject, newProjectId } from './db.js';
 const STARTING_PAIR_COUNT = 3;
 
 const MEDIA_TYPES = [
-  { key: 'video',    label: '🎬 Video',       accept: 'video/*', hint: 'Plays flat on top of the printed image' },
-  { key: 'photo360', label: '🌐 360 Photo',   accept: 'image/*', hint: 'Equirectangular 2:1 image — immersive view' },
-  { key: 'video360', label: '🎥 360 Video',   accept: 'video/*', hint: 'Equirectangular 2:1 video — immersive view' },
+  { key: 'video',    label: '🎬 Video',       accept: 'video/*',           hint: 'Plays flat on top of the printed image' },
+  { key: 'photo360', label: '🌐 360 Photo',   accept: 'image/*',           hint: 'Equirectangular 2:1 image — immersive view' },
+  { key: 'video360', label: '🎥 360 Video',   accept: 'video/*',           hint: 'Equirectangular 2:1 video — immersive view' },
+  { key: 'model3d',  label: '🧊 3D Model',    accept: '.glb,.gltf',        hint: 'glTF / GLB exported from Rhino, Blender, etc. — appears on top of the image' },
 ];
 
 // ─── State ────────────────────────────────────────────────
@@ -47,6 +48,15 @@ function renderMediaSlot(p, i) {
     return `
       <video src="${p.mediaURL}" muted class="slot-preview"></video>
       <span class="slot-filename">${escapeHtml(p.mediaFile.name)}</span>
+    `;
+  }
+  if (p.mediaType === 'model3d') {
+    // No inline 3D preview — too heavy for a pair card. Icon + filename + size.
+    const mb = (p.mediaFile.size / (1024 * 1024)).toFixed(1);
+    return `
+      <div class="slot-model">🧊</div>
+      <span class="slot-filename">${escapeHtml(p.mediaFile.name)}</span>
+      <span class="slot-sub">${mb} MB</span>
     `;
   }
   // photo360

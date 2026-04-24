@@ -401,6 +401,17 @@ header h1 {
   white-space: nowrap;
 }
 
+.slot-model {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.slot-sub {
+  font-size: 10px;
+  color: #aaa;
+  letter-spacing: 0.5px;
+}
+
 /* ─── Buttons ─── */
 .btn-secondary {
   display: inline-block;

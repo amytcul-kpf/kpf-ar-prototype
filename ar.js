@@ -1,7 +1,14 @@
 import * as THREE from 'three';
 import { MindARThree } from 'mindar-image-three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { getProject } from './db.js';
 import { showPanorama } from './panorama.js';
+
+// Draco decoder hosted alongside three.js on jsdelivr. GLTFLoader
+// only uses this if the .glb was exported with Draco compression;
+// uncompressed glTF goes straight through without fetching it.
+const DRACO_DECODER = 'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/libs/draco/';
 
 // ─── State ────────────────────────────────────────────────
 let mindarThree       = null;
@@ -104,6 +111,25 @@ window.addEventListener('load', async () => {
 
     const { renderer, scene, camera } = mindarThree;
 
+    // ── Lights (only needed if any target is a 3D model) ──
+    if (project.targets.some(t => t.mediaType === 'model3d')) {
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.6));
+      const dir = new THREE.DirectionalLight(0xffffff, 1.8);
+      dir.position.set(1, 2, 1);
+      scene.add(dir);
+    }
+
+    // ── Shared glTF loader (Draco-capable) ──
+    let gltfLoader = null;
+    function getGLTFLoader() {
+      if (gltfLoader) return gltfLoader;
+      gltfLoader = new GLTFLoader();
+      const draco = new DRACOLoader();
+      draco.setDecoderPath(DRACO_DECODER);
+      gltfLoader.setDRACOLoader(draco);
+      return gltfLoader;
+    }
+
     // ── Build one anchor per project target ──
     let foundCount = 0;
     project.targets.forEach((t, i) => {
@@ -126,6 +152,57 @@ window.addEventListener('load', async () => {
           foundCount = Math.max(0, foundCount - 1);
           updateScanHint();
           // Don't auto-close the pano; user dismisses via ✕ Close.
+        };
+        return;
+      }
+
+      // 3D model (glTF/GLB) attached to the image anchor
+      if (t.mediaType === 'model3d') {
+        const modelBlobURL = URL.createObjectURL(t.mediaBlob);
+        getGLTFLoader().load(
+          modelBlobURL,
+          (gltf) => {
+            const model = gltf.scene;
+
+            // Rhino exports Z-up; three.js is Y-up. Un-rotate so
+            // the model stands the right way on the tracked image.
+            model.rotation.x = -Math.PI / 2;
+
+            // Auto-fit: scale the model so its largest horizontal
+            // dimension matches the image anchor's width (= 1 unit).
+            const box  = new THREE.Box3().setFromObject(model);
+            const size = new THREE.Vector3();
+            box.getSize(size);
+            const maxDim = Math.max(size.x, size.y, size.z);
+            if (maxDim > 0) model.scale.setScalar(1 / maxDim);
+
+            // Re-measure after scale/rotation; centre on the anchor
+            // horizontally, and lift so the bottom of the bounding
+            // box sits on the printed image plane.
+            box.setFromObject(model);
+            const center = new THREE.Vector3();
+            box.getCenter(center);
+            model.position.x -= center.x;
+            model.position.z -= center.z;
+            model.position.y -= box.min.y;
+
+            anchor.group.add(model);
+            URL.revokeObjectURL(modelBlobURL);
+          },
+          undefined,
+          (err) => {
+            console.error(`Failed to load model "${t.mediaName}":`, err);
+            URL.revokeObjectURL(modelBlobURL);
+          }
+        );
+
+        anchor.onTargetFound = () => {
+          foundCount++;
+          updateStatus(t, i);
+        };
+        anchor.onTargetLost = () => {
+          foundCount = Math.max(0, foundCount - 1);
+          updateScanHint();
         };
         return;
       }
