@@ -49,11 +49,24 @@ async function waitForStart() {
 window.addEventListener('load', async () => {
   const loadingOverlay = document.getElementById('loading-overlay');
   const loadingText    = document.getElementById('loading-text');
+  const loadingBar     = document.getElementById('loading-bar');
+  const loadingPct     = document.getElementById('loading-percent');
   const statusLabel    = document.getElementById('statusLabel');
   const scanGuide      = document.getElementById('scan-guide');
   const scanText       = document.getElementById('scan-text');
 
+  // Progress helper — clamps and updates bar width + % readout + label.
+  let progress = 0;
+  function setProgress(pct, text) {
+    progress = Math.max(progress, Math.min(100, Math.round(pct)));
+    loadingBar.style.width = progress + '%';
+    loadingPct.textContent = progress + '%';
+    if (text) loadingText.textContent = text;
+  }
+
   try {
+    setProgress(2, 'Loading project…');
+
     // ── Resolve project ──
     const id = new URLSearchParams(window.location.search).get('id');
     if (!id) {
@@ -61,13 +74,13 @@ window.addEventListener('load', async () => {
       window.location.href = 'index.html';
       return;
     }
-    loadingText.textContent = 'Loading project…';
     const project = await getProject(id);
     if (!project || !project.mindBuffer) {
       alert('Project not found or not compiled. Returning to home.');
       window.location.href = 'index.html';
       return;
     }
+    setProgress(20, 'Project loaded');
 
     // ── iOS: wait for tap to grant motion permission before starting AR ──
     await waitForStart();
@@ -75,7 +88,7 @@ window.addEventListener('load', async () => {
     const mindURL     = URL.createObjectURL(new Blob([project.mindBuffer]));
     const targetCount = project.targets.length;
 
-    loadingText.textContent = 'Starting camera…';
+    setProgress(25, 'Preparing targets…');
 
     // ── Init MindAR Three.js renderer ──
     mindarThree = new MindARThree({
@@ -159,6 +172,8 @@ window.addEventListener('load', async () => {
         updateScanHint();
       };
     });
+    // 25 -> 60 across all target setups
+    setProgress(25 + 35);
 
     function updateStatus(t, i) {
       statusLabel.textContent = `✅ ${t.imageName || `Target ${i + 1}`}`;
@@ -177,9 +192,17 @@ window.addEventListener('load', async () => {
 
     statusLabel.textContent = `🔍 Scanning ${targetCount} target${targetCount === 1 ? '' : 's'}…`;
 
-    // ── Start AR ──
-    loadingText.textContent = 'Loading AR engine…';
-    await mindarThree.start();
+    // ── Start AR (opaque, no progress events — trickle from 60 -> 88) ──
+    setProgress(60, 'Loading AR engine…');
+    const trickleId = setInterval(() => {
+      if (progress < 88) setProgress(progress + 1);
+    }, 80);
+    try {
+      await mindarThree.start();
+    } finally {
+      clearInterval(trickleId);
+    }
+    setProgress(92, 'Finalising…');
 
     // ── HUD unmute button (flat-video only) ──
     const unmuteBtn = document.getElementById('unmute-btn');
@@ -199,11 +222,11 @@ window.addEventListener('load', async () => {
     });
 
     // ── Hide loading screen ──
-    loadingText.textContent = 'Ready!';
+    setProgress(100, 'Ready!');
     setTimeout(() => {
       loadingOverlay.classList.add('fade-out');
       setTimeout(() => loadingOverlay.style.display = 'none', 500);
-    }, 600);
+    }, 500);
 
   } catch (err) {
     console.error('AR Error:', err);
