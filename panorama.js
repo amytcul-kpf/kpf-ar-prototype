@@ -1,5 +1,53 @@
 import * as THREE from 'three';
-import { DeviceOrientationControls } from 'three/addons/controls/DeviceOrientationControls.js';
+
+// Minimal DeviceOrientationControls — three.js shipped this in
+// examples/jsm/controls/ until r134, then removed it. We inline the
+// classic implementation here so panorama.js doesn't depend on a
+// file that no longer exists in three 0.158.
+class DeviceOrientationControls {
+  constructor(camera) {
+    this.camera = camera;
+    this.camera.rotation.reorder('YXZ');
+    this.deviceOrientation = { alpha: 0, beta: 0, gamma: 0 };
+    this.screenOrientation = 0;
+    this._q0 = new THREE.Quaternion();
+    this._q1 = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5));
+    this._euler = new THREE.Euler();
+    this._zee = new THREE.Vector3(0, 0, 1);
+
+    this._onDeviceOrientation = (e) => {
+      this.deviceOrientation = {
+        alpha: e.alpha || 0,
+        beta:  e.beta  || 0,
+        gamma: e.gamma || 0,
+      };
+    };
+    this._onScreenOrientation = () => {
+      this.screenOrientation = window.orientation || 0;
+    };
+
+    window.addEventListener('deviceorientation', this._onDeviceOrientation);
+    window.addEventListener('orientationchange',  this._onScreenOrientation);
+    this._onScreenOrientation();
+  }
+
+  update() {
+    const d = THREE.MathUtils.degToRad;
+    const alpha  = d(this.deviceOrientation.alpha);
+    const beta   = d(this.deviceOrientation.beta);
+    const gamma  = d(this.deviceOrientation.gamma);
+    const orient = d(this.screenOrientation);
+    this._euler.set(beta, alpha, -gamma, 'YXZ');
+    this.camera.quaternion.setFromEuler(this._euler);
+    this.camera.quaternion.multiply(this._q1);
+    this.camera.quaternion.multiply(this._q0.setFromAxisAngle(this._zee, -orient));
+  }
+
+  disconnect() {
+    window.removeEventListener('deviceorientation', this._onDeviceOrientation);
+    window.removeEventListener('orientationchange',  this._onScreenOrientation);
+  }
+}
 
 // Full-screen 360 viewer. Renders an inverted sphere textured with an
 // equirectangular image or video blob. Uses DeviceOrientationControls
