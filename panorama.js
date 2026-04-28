@@ -91,6 +91,7 @@ export function showPanorama({ blob, type, motionGranted, onExit }) {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.domElement.className = 'pano-canvas';
   overlay.appendChild(renderer.domElement);
 
@@ -112,6 +113,7 @@ export function showPanorama({ blob, type, motionGranted, onExit }) {
     videoEl.preload     = 'auto';
 
     texture = new THREE.VideoTexture(videoEl);
+    texture.colorSpace = THREE.SRGBColorSpace;
     texture.minFilter = THREE.LinearFilter;
     texture.magFilter = THREE.LinearFilter;
 
@@ -119,6 +121,7 @@ export function showPanorama({ blob, type, motionGranted, onExit }) {
     overlay.querySelector('[data-role=unmute]').style.display = '';
   } else {
     texture = new THREE.TextureLoader().load(blobURL);
+    texture.colorSpace = THREE.SRGBColorSpace;
     texture.minFilter = THREE.LinearFilter;
     texture.magFilter = THREE.LinearFilter;
   }

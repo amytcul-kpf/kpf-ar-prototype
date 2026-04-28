@@ -275,8 +275,9 @@ window.addEventListener('load', async () => {
       videoEls.push(videoEl);
 
       const videoTexture = new THREE.VideoTexture(videoEl);
-      videoTexture.minFilter = THREE.LinearFilter;
-      videoTexture.magFilter = THREE.LinearFilter;
+      videoTexture.colorSpace = THREE.SRGBColorSpace;
+      videoTexture.minFilter  = THREE.LinearFilter;
+      videoTexture.magFilter  = THREE.LinearFilter;
 
       const geometry = new THREE.PlaneGeometry(1, 1);
       const material = new THREE.MeshBasicMaterial({
